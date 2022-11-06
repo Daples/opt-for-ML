@@ -42,8 +42,15 @@ class KMeans(ClusteringMethod):
             The maximum number of iterations.
         """
 
-        def _is_finished() -> bool:
-            """It evaluates the stopping criterion for the algorithm.
+        def _is_finished(i: int, improvement: float) -> bool:
+            """Auxiliary method that evaluates the stopping criterion for the algorithm.
+
+            Parameters
+            ----------
+            i: int
+                The current iteration number.
+            improvement: float
+                The objective function improvement.
 
             Returns
             -------
@@ -71,7 +78,7 @@ class KMeans(ClusteringMethod):
         improvement = np.inf
         i = 0
         prev_loss = 0
-        while not _is_finished():
+        while not _is_finished(i, improvement):
             # Find memberships
             self._update_membership(data_matrix)
 
@@ -83,6 +90,7 @@ class KMeans(ClusteringMethod):
             current_loss = self.loss_function()
             improvement = current_loss - prev_loss
             prev_loss = current_loss
+            i += 1
 
         for cluster_index in range(self.n_clusters):
             self.belonging_map[cluster_index] = self.membership_matrix[
@@ -103,6 +111,7 @@ class KMeans(ClusteringMethod):
         self.membership_matrix = np.zeros(dims)
 
         # Update distances
+        # TODO: generalize for other inner products (Kernel)
         for i in range(self.n_clusters):
             self.distances[i, :] = euclidean(self.clusters[i, :], data_matrix)
 
