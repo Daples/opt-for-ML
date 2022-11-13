@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Callable
 
 from numpy.random import Generator
 
 import numpy as np
+
+from utils import euclidean
 
 
 class ClusteringMethod(ABC):
@@ -10,6 +13,8 @@ class ClusteringMethod(ABC):
 
     Attributes
     ----------
+    metric: np.ndarray, np.ndarray -> np.ndarray, optional
+        The operator to evaluate distance. Default: utils.euclidean
     n_clusters: int, optional
         The number of clusters for the clustering method. Default: 1.
     belonging_map: dict[int, numpy.ndarray]
@@ -31,7 +36,13 @@ class ClusteringMethod(ABC):
         matrix is of dimensions `n_clusters x n`.
     """
 
-    def __init__(self, generator: Generator, n_clusters: int = 1) -> None:
+    def __init__(
+        self,
+        metric: Callable[[np.ndarray, np.ndarray], np.ndarray] = euclidean,
+        generator: Generator = np.random.default_rng(),
+        n_clusters: int = 1,
+    ) -> None:
+        self.metric: Callable[[np.ndarray, np.ndarray], np.ndarray] = metric
         self.n_clusters: int = n_clusters
         self.belonging_map: dict[int, np.ndarray] = {}
         self._generator: Generator = generator
@@ -131,10 +142,6 @@ class ClusteringMethod(ABC):
         """
 
         self._distances = value
-
-    @abstractmethod
-    def loss_function(self) -> float:
-        """The loss of the clustering algorithm."""
 
     @abstractmethod
     def fit(self, data_matrix: np.ndarray) -> None:
