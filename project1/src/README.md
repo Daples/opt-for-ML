@@ -37,4 +37,4 @@ for the project, and extract some basic results.
 The third file `run_eig.py` creates the unnormalized and normalized graph Laplacians and
 computes the eigenvalues and vectors for both matrices, and stores them in compressed
 `.npz` files for later use. This allowed us to only run the eigen decomposition only
-once.
+once. Remark: each eigen decomposition takes around 2h.
