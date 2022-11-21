@@ -160,3 +160,8 @@ def spectral(
 
     # Write the membership maps
     write_json(spectral.belonging_map, outfile)
+
+
+# Execute CLI
+if __name__ == "__main__":
+    main()
