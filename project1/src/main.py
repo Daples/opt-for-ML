@@ -1,12 +1,11 @@
 import click
 import numpy as np
-import json
 
 from clustering.kernelized_kmeans import KernelizedKMeans
 from clustering.kmeans import KMeans
-from clustering.spectral import Spectral
 from clustering.normalized_spectral import NormalizedSpectral
-from utils import euclidean, get_data_matrix, write_json
+from clustering.spectral import Spectral
+from utils import get_data_matrix, write_json
 from utils.adjacency import NearestNeighborsAdjacency
 
 SEED = click.option(
