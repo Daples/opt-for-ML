@@ -5,9 +5,8 @@ eigenvalues and eigenvectors.
 
 from typing import cast
 
-from scipy import linalg as lin
 import numpy as np
-
+from scipy import linalg as lin
 
 eps = 1e-7
 
@@ -638,7 +637,7 @@ def eigenvecs(a: np.ndarray, eigenvals: np.ndarray) -> np.ndarray:
 
 
 def eig(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Eigenvalues and eigen vectors of an input matrix.
+    """Eigenvalues and eigenvectors of an input matrix.
 
     Parameters
     ----------
@@ -654,7 +653,7 @@ def eig(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
 
     t, _ = real_schur(matrix)
-    eig_vals = np.diag(eigenvals(t))
+    eig_vals = np.array(eigenvals(t))
     vecs = eigenvecs(matrix, eig_vals)
 
     return eig_vals, vecs
