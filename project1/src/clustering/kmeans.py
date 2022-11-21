@@ -1,17 +1,11 @@
+import numpy as np
+
 from clustering.core.cluster import ClusteringMethod
 from utils import euclidean
 
-import numpy as np
-
 
 class KMeans(ClusteringMethod):
-    """A class that represent the K-Means clustering algorithm.
-
-    Attributes
-    ----------
-    metric: numpy.ndarray, numpy.ndarray -> numpy.ndarray
-        The metric between two sets of data points.
-    """
+    """A class that represent the K-Means clustering algorithm."""
 
     def loss_function(self) -> float:
         """The loss for the k-means algorithm.
@@ -65,7 +59,7 @@ class KMeans(ClusteringMethod):
                 condition_epsilon = improvement <= epsilon
             condition_iter = False
             if n_iter is not None:
-                condition_iter = n_iter > i
+                condition_iter = n_iter < i
             return condition_epsilon or condition_iter
 
         # Initialize centers
@@ -88,14 +82,17 @@ class KMeans(ClusteringMethod):
 
             # Calculate loss and improvement
             current_loss = self.loss_function()
-            improvement = current_loss - prev_loss
+            improvement = abs(current_loss - prev_loss)
             prev_loss = current_loss
             i += 1
 
         for cluster_index in range(self.n_clusters):
-            self.belonging_map[cluster_index] = self.membership_matrix[
-                cluster_index, :
-            ].nonzero()[0]
+            self.belonging_map[cluster_index] = list(
+                map(
+                    lambda x: int(x),
+                    self.membership_matrix[cluster_index, :].nonzero()[0],
+                )
+            )
 
     def _update_membership(self, data_matrix: np.ndarray) -> None:
         """It updates both the membership and distance matrices.
@@ -111,7 +108,6 @@ class KMeans(ClusteringMethod):
         self.membership_matrix = np.zeros(dims)
 
         # Update distances
-        # TODO: generalize for other inner products (Kernel)
         for i in range(self.n_clusters):
             self.distances[i, :] = euclidean(self.clusters[i, :], data_matrix)
 
