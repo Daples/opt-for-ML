@@ -20,8 +20,8 @@ plt.rc("text", usetex=True)
 plt.rcParams.update({"font.size": 18})
 
 # I/O
-out_folder = "/home/daples/git/opt-for-ML/project1/src/outputs"
-data_path = "/home/daples/git/opt-for-ML/project1/src/data.csv"
+out_folder = "./outputs"
+data_path = "./data.csv"
 data_matrix = get_data_matrix(data_path, True)
 df = get_data_frame(data_path)
 
