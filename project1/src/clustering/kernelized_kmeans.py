@@ -119,7 +119,6 @@ class KernelizedKMeans(KMeans):
         # Iterate
         i = 0
         while not _is_finished(i):
-            print(i)
             # Find memberships
             self._update_membership(data_matrix)
 
@@ -150,11 +149,16 @@ class KernelizedKMeans(KMeans):
         self.distances = np.zeros(dims)
 
         for k in range(self.n_clusters):
+            # Get indices of data in current cluster
             members = self.belonging_map[k]
             n_members = len(members)
             if n_members == 0:
                 continue
+
+            # Get all possible combinations of indices
             indices = np.array(list(itertools.product(members, members)))
+
+            # Compute implicit distance to centers
             self.distances[k, :] = (
                 np.diag(self.kernel_similarities)
                 - (2 / n_members)
@@ -164,6 +168,7 @@ class KernelizedKMeans(KMeans):
                 * self.kernel_similarities[indices[:, 0], indices[:, 1]].sum()
             )
 
+        # Update memberships
         self.membership_matrix = np.zeros(dims)
         min_indices = np.argmin(self.distances, axis=0)
         indices = np.arange(n)
