@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from numpy.random import Generator
-
 import numpy as np
+from numpy.random import Generator
 
 from utils import euclidean
 
@@ -44,7 +43,7 @@ class ClusteringMethod(ABC):
     ) -> None:
         self.metric: Callable[[np.ndarray, np.ndarray], np.ndarray] = metric
         self.n_clusters: int = n_clusters
-        self.belonging_map: dict[int, np.ndarray] = {}
+        self.belonging_map: dict[int, list[int]] = {}
         self._generator: Generator = generator
         self._clusters: np.ndarray | None = None
         self._membership_matrix: np.ndarray | None = None
@@ -119,7 +118,7 @@ class ClusteringMethod(ABC):
         Returns
         -------
         numpy.ndarray
-            The square distance matrix.
+            The distance matrix.
 
         Raises
         ------
