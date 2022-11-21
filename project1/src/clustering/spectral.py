@@ -1,12 +1,14 @@
+from time import time
 from typing import Callable
+
+import numpy as np
 from numpy.random import Generator
 
 from clustering.core.cluster import ClusteringMethod
 from clustering.kmeans import KMeans
-from utils.adjacency import AdjacencyMatrix
 from utils import euclidean
-
-import numpy as np
+from utils.adjacency import AdjacencyMatrix
+from utils.eigen import eig
 
 
 class Spectral(ClusteringMethod):
@@ -30,7 +32,7 @@ class Spectral(ClusteringMethod):
 
     def fit(
         self,
-        data_matrix: np.ndarray,
+        _: np.ndarray,
         epsilon: float | None = None,
         n_iter: int | None = None,
     ) -> None:
@@ -50,12 +52,10 @@ class Spectral(ClusteringMethod):
         self.adjacency.fit()
 
         # Graph Laplacian
-        degree_matrix = self.adjacency.degree_matrix
-        adjacency_matrix = self.adjacency.adjacency_matrix
-        graph_laplacian = degree_matrix - adjacency_matrix  # type: ignore
+        graph_laplacian = self._get_graph_laplacian()
 
-        # Construct H
-        vals, vecs = np.linalg.eig(graph_laplacian)
+        # Eigen decomposition of the graph Laplacian
+        vals, vecs = self.adjacency.eigen_decomposition(graph_laplacian)
         idx_max = np.argpartition(vals, self.n_clusters)[: self.n_clusters]
         H = vecs[:, idx_max]
 
@@ -70,3 +70,17 @@ class Spectral(ClusteringMethod):
         self.membership_matrix = kmeans.membership_matrix
         self.distances = kmeans.distances
         self.belonging_map = kmeans.belonging_map
+
+    def _get_graph_laplacian(self) -> np.ndarray:
+        """A method that calculates the graph Laplacian.
+
+        Returns
+        -------
+        np.ndarray
+            The graph Laplacian matrix.
+        """
+
+        degree_matrix = self.adjacency.degree_matrix
+        adjacency_matrix = self.adjacency.adjacency_matrix
+        graph_laplacian = degree_matrix - adjacency_matrix  # type: ignore
+        return graph_laplacian
