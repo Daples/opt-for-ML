@@ -2,7 +2,6 @@ import itertools
 from typing import Callable
 
 import numpy as np
-from tqdm import tqdm
 from numpy.random import Generator
 
 from clustering.kmeans import KMeans
