@@ -14,9 +14,8 @@ class KernelizedKMeans(KMeans):
 
     Properties
     ----------
-    kernel_similarities
-
-    _cpu_cores
+    kernel_similarities: np.ndarray
+        The matrix of kernel similarities between points.
     """
 
     def __init__(
