@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-
-from utils import gaussian_kernel, euclidean
+from typing import cast
 
 import numpy as np
+
+from utils import gaussian_kernel
+from utils.eigen import eig
 
 
 class AdjacencyMatrix(ABC):
@@ -12,6 +14,12 @@ class AdjacencyMatrix(ABC):
     ----------
     data: numpy.ndarray
         The data matrix.
+    eigen_solver: str, optional
+        The eigen solver to use. Default: "numpy"
+    _eigenvalues: numpy.ndarray | None, optional
+        The eigenvalues of the graph Laplacian (if available). Default: None
+    _eigenvectors: numpy.ndarray | None, optional
+        The eigenvectors of the graph Laplacian (if available). Default: None
     _gamma: float, optional
         The scaling factor for the Gaussian kernel. Default: 0.5
 
@@ -19,13 +27,26 @@ class AdjacencyMatrix(ABC):
     ----------
     adjacency_matrix: numpy.ndarray
         The adjacency matrix.
+    degree_matrix: numpy.ndarray
+        The degree matrix.
     """
 
-    def __init__(self, data_matrix: np.ndarray, gamma: float) -> None:
+    def __init__(
+        self,
+        data_matrix: np.ndarray,
+        gamma: float,
+        eigen_solver: str = "numpy",
+        eigenvalues: np.ndarray | None = None,
+        eigenvectors: np.ndarray | None = None,
+    ) -> None:
         self.data: np.ndarray = data_matrix
+        self._eigen_solver: str = eigen_solver
+        self._eigenvalues: np.ndarray | None = eigenvalues
+        self._eigenvectors: np.ndarray | None = eigenvectors
         self._gamma: float = gamma
         self._adjacency_matrix: np.ndarray | None = None
         self._degree_matrix: np.ndarray | None = None
+        self._laplacian_matrix: np.ndarray | None = None
 
     @property
     def adjacency_matrix(self) -> np.ndarray:
@@ -101,6 +122,39 @@ class AdjacencyMatrix(ABC):
                 self._adjacency_matrix[i, j] = 1
                 self._adjacency_matrix[j, i] = 1
 
+    def eigen_decomposition(
+        self, laplacian_matrix: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """It returns the eigenvalues and vectors of the input Laplacian matrix.
+
+        Returns
+        -------
+        numpy.ndarray
+            The vector of eigenvalues.
+        numpy.ndarray
+            The matrix eigenvectors on its columns.
+
+        Raises
+        ------
+        ValueError
+            When the passed eigen solver is not implemented.
+        """
+
+        if self._eigenvalues is None and self._eigenvectors is None:
+            match self._eigen_solver:
+                case "numpy":
+                    self._eigenvalues, self._eigenvectors = np.linalg.eig(
+                        laplacian_matrix
+                    )
+                case "custom":
+                    self._eigenvalues, self._eigenvectors = eig(laplacian_matrix)
+                case _:
+                    raise ValueError("The requested eigen solver is not supported.")
+        return (
+            cast(np.ndarray, self._eigenvalues),
+            cast(np.ndarray, self._eigenvectors),
+        )
+
 
 class NearestNeighborsAdjacency(AdjacencyMatrix):
     """A class to represent an adjacency matrix based on nearest neighbors.
@@ -112,9 +166,15 @@ class NearestNeighborsAdjacency(AdjacencyMatrix):
     """
 
     def __init__(
-        self, data_matrix: np.ndarray, n_neighbors: int, gamma: float = 0.5
+        self,
+        data_matrix: np.ndarray,
+        n_neighbors: int,
+        gamma: float = 0.5,
+        eigen_solver: str = "numpy",
+        eigenvalues: np.ndarray | None = None,
+        eigenvectors: np.ndarray | None = None,
     ) -> None:
-        super().__init__(data_matrix, gamma)
+        super().__init__(data_matrix, gamma, eigen_solver, eigenvalues, eigenvectors)
         self.n_neighbors: int = n_neighbors
 
     def _get_indices(self, similarity: np.ndarray) -> np.ndarray:
@@ -145,9 +205,15 @@ class SimilarityThresholdAdjacency(AdjacencyMatrix):
     """
 
     def __init__(
-        self, data_matrix: np.ndarray, beta: float, gamma: float = 0.5
+        self,
+        data_matrix: np.ndarray,
+        beta: float,
+        gamma: float,
+        eigen_solver: str = "numpy",
+        eigenvalues: np.ndarray | None = None,
+        eigenvectors: np.ndarray | None = None,
     ) -> None:
-        super().__init__(data_matrix, gamma)
+        super().__init__(data_matrix, gamma, eigen_solver, eigenvalues, eigenvectors)
         self.beta: float = beta
 
     def _get_indices(self, similarity: np.ndarray) -> np.ndarray:
