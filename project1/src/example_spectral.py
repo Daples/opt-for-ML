@@ -1,51 +1,21 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from utils import euclidean
-from utils.adjacency import NearestNeighborsAdjacency
-from utils.adjacency import SimilarityThresholdAdjacency
-from clustering.kmeans import KMeans
+from clustering.normalized_spectral import NormalizedSpectral
 from clustering.spectral import Spectral
+from utils.adjacency import NearestNeighborsAdjacency
+from utils.sample_generation import generate_circles
 
-generator = np.random.default_rng(123456789)
-n = 250
-
-r1 = 5
-r2 = 1
-xs1 = np.linspace(-r1, r1, n)
-xs2 = np.linspace(-r2, r2, n)
-data1 = []
-data2 = []
-f = lambda x, r: np.sqrt(r**2 - x**2) + generator.normal(0, 0.2)
-
-data1 = np.zeros((2 * xs1.size, 2))
-data1[:, 0] = np.hstack((xs1, xs1))
-
-data2 = np.zeros((2 * xs2.size, 2))
-data2[:, 0] = np.hstack((xs2, xs2))
-
-for i in range(xs1.size):
-    data1[i, 1] = f(xs1[i], r1)
-    data1[i + xs1.size - 1, 1] = -f(xs1[i], r1)
-
-
-for i in range(xs1.size):
-    data2[i, 1] = f(xs2[i], r2)
-    data2[i + xs2.size - 1, 1] = -f(xs2[i], r2)
-
-X = np.vstack((data1, data2))
+generator = np.random.default_rng(12345)
+X = generate_circles(1000, [1, 5, 7], seed=generator)
 epsilon = 1e-7
 n_iter = 250
 n_clusters = 2
-# kmeans = KMeans(metric=euclidean, generator=generator, n_clusters=n_clusters)
-# kmeans.fit(X, epsilon=epsilon)
 
-gamma = 10
-beta = 0.8
-neighbors = 10
-adjacency = NearestNeighborsAdjacency(X, neighbors, gamma=gamma)
-# adjacency = SimilarityThresholdAdjacency(X, beta, gamma)
-spectral = Spectral(adjacency, generator=generator, n_clusters=n_clusters)
+gamma = 0.5
+neighbors = 20
+adjacency = NearestNeighborsAdjacency(X, neighbors, gamma=gamma, eigen_solver="numpy")
+spectral = NormalizedSpectral(adjacency, generator=generator, n_clusters=n_clusters)
 spectral.fit(X, epsilon=epsilon, n_iter=n_iter)
 
 # Plot clusters

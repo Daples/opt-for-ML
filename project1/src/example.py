@@ -1,12 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from utils import euclidean
 from clustering.kmeans import KMeans
-
-point = np.array([0, 0])
-matrix = np.array([[1, 1], [3, 4], [3, 4]])
-euclidean(point, matrix)
 
 generator = np.random.default_rng(123456789)
 n = 3000
@@ -16,16 +11,18 @@ pop2 = np.random.multivariate_normal(
 )
 X = np.vstack((pop1, pop2))
 
-kmeans = KMeans(generator, n_clusters=10)
-kmeans.fit(X, epsilon=1e-5)
+
+kmeans = KMeans(generator=generator, n_clusters=2)
+kmeans.fit(X, n_iter=100)
 
 
 # Plot clusters
+clustering_obj = kmeans
 fig = plt.figure()
 ax = plt.subplot(111)
 kwargs = {"zorder": 3, "s": 8}
-for i in range(kmeans.n_clusters):
-    indices = kmeans.belonging_map[i]
+for i in range(clustering_obj.n_clusters):
+    indices = clustering_obj.belonging_map[i]
     data_cluster = X[indices, :]
     plt.scatter(
         data_cluster[:, 0],
@@ -34,7 +31,7 @@ for i in range(kmeans.n_clusters):
         **kwargs,
     )
 
-    center = kmeans.clusters[i, :]
+    center = clustering_obj.clusters[i, :]
     plt.scatter(center[0], center[1], c="r", **kwargs)
 
 # Get legend outside of plot

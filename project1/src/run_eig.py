@@ -6,7 +6,6 @@ import pandas as pd
 from utils.adjacency import NearestNeighborsAdjacency
 from utils.eigen import eig
 
-
 data_matrix = pd.read_csv("data.csv").to_numpy()
 data_matrix = data_matrix[:, 1:]
 

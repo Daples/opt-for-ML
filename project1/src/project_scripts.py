@@ -1,15 +1,15 @@
-import numpy as np
 import os
-import matplotlib.pyplot as plt
-
-from clustering.kmeans import KMeans
-from clustering.kernelized_kmeans import KernelizedKMeans
-from clustering.spectral import Spectral
-from clustering.normalized_spectral import NormalizedSpectral
-from utils import get_data_matrix, write_json, get_data_frame
-from utils.adjacency import NearestNeighborsAdjacency
-
 from time import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from clustering.kernelized_kmeans import KernelizedKMeans
+from clustering.kmeans import KMeans
+from clustering.normalized_spectral import NormalizedSpectral
+from clustering.spectral import Spectral
+from utils import get_data_frame, get_data_matrix, write_json
+from utils.adjacency import NearestNeighborsAdjacency
 
 # General configuration
 seed = 12345

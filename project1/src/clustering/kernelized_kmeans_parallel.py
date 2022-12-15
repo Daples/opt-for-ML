@@ -1,11 +1,11 @@
 import itertools
+import multiprocessing
 from typing import Callable
 
 import numpy as np
-from tqdm import tqdm
+from joblib import Parallel, delayed
 from numpy.random import Generator
-from joblib import delayed, Parallel
-import multiprocessing
+from tqdm import tqdm
 
 from clustering.kmeans import KMeans
 from utils import gaussian_kernel

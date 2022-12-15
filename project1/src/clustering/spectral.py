@@ -1,4 +1,3 @@
-from time import time
 from typing import Callable
 
 import numpy as np
@@ -8,7 +7,6 @@ from clustering.core.cluster import ClusteringMethod
 from clustering.kmeans import KMeans
 from utils import euclidean
 from utils.adjacency import AdjacencyMatrix
-from utils.eigen import eig
 
 
 class Spectral(ClusteringMethod):
