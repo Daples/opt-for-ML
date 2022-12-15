@@ -1,6 +1,6 @@
 import numpy as np
-from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score
+from sklearn.svm import SVC
 
 
 class ClassificationModel:

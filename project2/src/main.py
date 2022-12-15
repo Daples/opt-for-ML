@@ -1,7 +1,9 @@
+import json
+
+import numpy as np
+
 from hyper.bayesian import BayesianOptimizer
 from utils import get_data
-import numpy as np
-import json
 
 X, y = get_data("/home/daples/git/opt-for-ML/project2/src/heart.csv")
 names = ["C", "gamma"]

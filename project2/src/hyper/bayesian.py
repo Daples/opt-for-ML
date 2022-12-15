@@ -1,17 +1,18 @@
-import scipy.stats as st
-import numpy as np
 from typing import Any, cast
+
+import numpy as np
+import scipy.stats as st
 from numpy.random import Generator, default_rng
+from sklearn.svm import SVC
 
 from utils import gaussian_kernel
+from utils.classifier import ClassificationModel
 from utils.optimize import (
-    incremental_search,
+    backtracking,
     golden_section_search,
     gradient,
-    backtracking,
+    incremental_search,
 )
-from utils.classifier import ClassificationModel
-from sklearn.svm import SVC
 
 
 class BayesianOptimizer:
