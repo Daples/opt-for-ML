@@ -36,7 +36,6 @@ def incremental_search(
     prev_val = f(starting_point)
     i = 1
     shift = lambda i: (i - 1) * step
-    print("Running incremental search...")
     while shift(i) < max_step:
         current_point = starting_point + shift(i)
         current_val = f(current_point)
@@ -46,7 +45,6 @@ def incremental_search(
         i += 1
     lower = starting_point + shift(i - 1)
     upper = starting_point + shift(i + 1)
-    print("Finished incremental search")
 
     return lower, upper
 
