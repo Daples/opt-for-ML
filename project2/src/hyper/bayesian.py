@@ -170,17 +170,25 @@ class BayesianOptimizer:
             update_h = lambda l: h + l * grad / norm
             auxiliary_of = lambda l: self.acquisition_function(update_h(l))
 
-            # Find maximum possible step
+            # Optimize for step size
+            dim = self.intervals.shape[0]
             minimum_distance = np.inf
-            for i in range(len(self.hyperparameter_names)):
-                d = np.abs(self.intervals[i, :] - h[i]).min()
-                if d < minimum_distance:
-                    minimum_distance = d
+            for i in range(dim):
+                if grad[i] == 0:
+                    continue
+                lower = self.intervals[i, 0]
+                upper = self.intervals[i, 1]
+                distance = max(
+                    (upper - h[i]) / (grad[i] / norm), (lower - h[i]) / (grad[i] / norm)
+                )
+                if distance < minimum_distance:
+                    minimum_distance = distance
 
             # Optimize for step size
+            print(update_h(minimum_distance))
             bounds = incremental_search(auxiliary_of, minimum_distance)
             bounds = golden_section_search(auxiliary_of, bounds)
-            l = sum(bounds) / 2
+            l = sum(bounds) / dim
 
             # Estimate improvement and project if necessary
             h = project(update_h(l), self.intervals)
