@@ -63,14 +63,15 @@ class BayesianOptimizer:
             SVC(kernel="rbf"), k_cross_val
         )
 
-        self.previous_hyperparameters: np.ndarray = np.zeros(
-            (0, self.intervals.shape[0])
-        )
+        n = self.intervals.shape[0]
+        self.previous_hyperparameters: np.ndarray = np.zeros((0, n))
         self.previous_performances: np.ndarray = np.zeros((0, 1))
-
-        # Move to properties?
-        self.best_hyperparameters: np.ndarray = np.zeros(2)
+        self.best_hyperparameters: np.ndarray = np.zeros(n)
         self.best_performance: float = 0
+
+        self._recalculate_parameters: bool = True
+        self._matrix_sigma: np.ndarray = np.zeros((n, n))
+        self._inv_matrix_sigma: np.ndarray = np.zeros((n, n))
 
     def optimize(
         self,
@@ -237,6 +238,7 @@ class BayesianOptimizer:
         self.previous_performances = np.vstack(
             (self.previous_performances, performance)
         )
+        self._recalculate_parameters = True
 
     def acquisition_function(self, hyperparameters: np.ndarray) -> float:
         """It returns the lower confidence bound acquisition function.
@@ -272,25 +274,28 @@ class BayesianOptimizer:
             The standard deviation of the Gaussian distribution.
         """
 
+        if self._recalculate_parameters:
+            n = self.previous_hyperparameters.shape[0]
+            self._matrix_sigma = np.zeros((n, n))
+            for i in range(n):
+                self._matrix_sigma[i, :] = gaussian_kernel(
+                    self.previous_hyperparameters[i, :], self.previous_hyperparameters
+                )
+            self._inv_matrix_sigma = np.linalg.inv(self._matrix_sigma)
+
         # Vector k and transform to column
         vector_k = gaussian_kernel(hyperparameters, self.previous_hyperparameters)[
             ..., None
         ]
 
-        n = self.previous_hyperparameters.shape[0]
-        matrix_sigma = np.zeros((n, n))
-        for i in range(n):
-            matrix_sigma[i, :] = gaussian_kernel(
-                self.previous_hyperparameters[i, :], self.previous_hyperparameters
-            )
-
         cov_k = gaussian_kernel(hyperparameters, hyperparameters[None, ...])
+        aux_vector = vector_k.T @ self._inv_matrix_sigma
 
-        aux_vector = vector_k.T @ np.linalg.inv(matrix_sigma)
-        mean = cast(float, aux_vector @ self.previous_performances)
-        std = cast(float, np.sqrt(cov_k - aux_vector @ vector_k))
+        self._mu = cast(float, aux_vector @ self.previous_performances)
+        self._sigma = cast(float, np.sqrt(cov_k - aux_vector @ vector_k))
+        self._recalculate_parameters = False
 
-        return mean, std
+        return self._mu, self._sigma
 
     def get_json(self) -> dict[str, Any]:
         """It returns a dictionary for JSON output formatting.
