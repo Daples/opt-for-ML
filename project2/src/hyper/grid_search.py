@@ -14,6 +14,27 @@ class GridSearchOptimizer:
 
     Attributes
     ----------
+    model: utils.classifier.ClassificationModel
+        The wrapping classfication model object.
+    intervals: numpy.ndarray
+        The array of dimensions `n_hyperparameters x 2` representing the lower and upper
+        bounds for each hyperparameters.
+    n_points: int
+        The number of partitions per dimension.
+    generator: numpy.random.Generator
+        The numpy RNG.
+    hyperparameter_names: list[str]
+        The list of hyperparameter names.
+    previous_hyperparameters: numpy.ndarray
+        The array of previous hyperparameters explored.
+    previous_performances: numpy.ndarray
+        The previous model performances.
+    best_hyperparameters: numpy.ndarray
+        The best-so-far combination of hyperparameters.
+    best_performance: float
+        The best-so-far performance.
+    performace_matrix: numpy.ndarray
+        The matrix that stores the performances on the grid.
     """
 
     def __init__(
@@ -37,7 +58,6 @@ class GridSearchOptimizer:
         self.previous_performances: np.ndarray = np.zeros((0, 1))
         self.best_hyperparams: np.ndarray = np.zeros(1)
         self.best_performance: float = 0
-        self.domain_matrix: np.ndarray = np.zeros(1)
         self.performance_matrix: np.ndarray = np.zeros(1)
 
     def optimize(self, X: np.ndarray, y: np.ndarray) -> None:
@@ -66,7 +86,6 @@ class GridSearchOptimizer:
         indices = list(product(*indices_matrix.tolist()))
 
         self.previous_performances = np.zeros(len(coordinates))
-        self.domain_matrix = matrix
 
         # Evaluate performances
         best_performance = 0
