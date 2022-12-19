@@ -34,6 +34,14 @@ class BayesianOptimizer:
         The previous model performances.
     best_hyperparameters: numpy.ndarray
         The best-so-far combination of hyperparameters.
+    best_performance: float
+        The best-so-far performance.
+    _recalculate_parameters: bool
+        If the auxiliary parameters need to be calculated.
+    _matrix_sigma: numpy.ndarray
+        The matrix of Kernel correlations.
+    _inv_matrix_sigma: numpy.ndarray
+        The inverse of the Kernel correlation matrix.
 
     (Static) Attributes
     -------------------
