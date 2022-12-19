@@ -185,7 +185,6 @@ class BayesianOptimizer:
                     minimum_distance = distance
 
             # Optimize for step size
-            print(update_h(minimum_distance))
             bounds = incremental_search(auxiliary_of, minimum_distance)
             bounds = golden_section_search(auxiliary_of, bounds)
             l = sum(bounds) / dim
@@ -226,27 +225,6 @@ class BayesianOptimizer:
             )
 
         return h
-
-    def _update_previous_info(
-        self, hyperparameters: np.ndarray, performance: float
-    ) -> None:
-        """It updates the stored hyperparameters and values.
-
-        Parameters
-        ----------
-        hyperparameters: numpy.ndarray
-            The new hyperparameters to add.
-        performance: numpy.ndarray
-            The new performance achieved.
-        """
-
-        self.previous_hyperparameters = np.vstack(
-            (self.previous_hyperparameters, hyperparameters)
-        )
-        self.previous_performances = np.vstack(
-            (self.previous_performances, performance)
-        )
-        self._recalculate_parameters = True
 
     def acquisition_function(self, hyperparameters: np.ndarray) -> float:
         """It returns the lower confidence bound acquisition function.
@@ -304,6 +282,27 @@ class BayesianOptimizer:
         self._recalculate_parameters = False
 
         return self._mu, self._sigma
+
+    def _update_previous_info(
+        self, hyperparameters: np.ndarray, performance: float
+    ) -> None:
+        """It updates the stored hyperparameters and values.
+
+        Parameters
+        ----------
+        hyperparameters: numpy.ndarray
+            The new hyperparameters to add.
+        performance: numpy.ndarray
+            The new performance achieved.
+        """
+
+        self.previous_hyperparameters = np.vstack(
+            (self.previous_hyperparameters, hyperparameters)
+        )
+        self.previous_performances = np.vstack(
+            (self.previous_performances, performance)
+        )
+        self._recalculate_parameters = True
 
     def get_json(self) -> dict[str, Any]:
         """It returns a dictionary for JSON output formatting.
