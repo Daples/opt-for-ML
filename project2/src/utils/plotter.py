@@ -1,13 +1,7 @@
-from __future__ import annotations
-
 import os
-from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-if TYPE_CHECKING:
-    from hyper.bayesian import BayesianOptimizer
 
 
 class Plotter:
