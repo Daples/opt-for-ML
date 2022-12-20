@@ -59,6 +59,9 @@ class GridSearchOptimizer:
         self.best_hyperparams: np.ndarray = np.zeros(1)
         self.best_performance: float = 0
         self.performance_matrix: np.ndarray = np.zeros(1)
+        self.domain_matrix: np.ndarray = np.zeros(
+            (self.intervals.shape[0], self.n_points)
+        )
 
     def optimize(self, X: np.ndarray, y: np.ndarray) -> None:
         """Use grid search to evaluate the model performance.
@@ -86,6 +89,7 @@ class GridSearchOptimizer:
         indices = list(product(*indices_matrix.tolist()))
 
         self.previous_performances = np.zeros(len(coordinates))
+        self.domain_matrix = matrix
 
         # Evaluate performances
         best_performance = 0
