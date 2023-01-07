@@ -231,8 +231,15 @@ class Plotter:
         cls.clear()
         cls.__setup_config__()
 
+        plt.plot(
+            1 - performances,
+            "bo",
+            label="BO performance",
+            alpha=0.7,
+            markersize=2,
+        )
         performances = np.maximum.accumulate(performances)
-        plt.plot(1 - performances, "ko", label="BO performance", markersize=2)
+        plt.plot(1 - performances, "ko", label="Best BO performance", markersize=2)
         plt.axhline(
             y=1 - performance_grid_search,
             color="r",
@@ -274,6 +281,5 @@ class Plotter:
         plt.plot(times, "k-o", markersize=2)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-        plt.ylim([0, 1])
         plt.grid()
         plt.savefig(cls._add_folder(path), bbox_inches="tight")
