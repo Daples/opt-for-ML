@@ -7,8 +7,8 @@ from hyper.grid_search import GridSearchOptimizer
 from utils import get_data
 from utils.plotter import Plotter
 
-
-X, y = get_data("/home/daples/git/opt-for-ML/project2/src/heart.csv")
+# Get data and general parameters
+X, y = get_data("./heart.csv")
 names = ["C", "gamma"]
 intervals = np.array([[0, 9], [-10, 0]])
 generator = 123456
@@ -18,6 +18,7 @@ N = 10
 gs = GridSearchOptimizer(intervals, N, names)
 gs.optimize(X, y)
 
+# Plot results
 xx = gs.domain_matrix[0, :]
 yy = gs.domain_matrix[1, :]
 Plotter.get_heatmatp(xx, yy, gs.performance_matrix, "hm.pdf")
