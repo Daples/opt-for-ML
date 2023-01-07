@@ -7,7 +7,8 @@ def incremental_search(
     f: Callable[[float], float],
     max_step: float,
     starting_point: float = 1e-18,
-    step: float = 0.05,
+    step: float = 0.01,
+    max_iter_equal: int = 50,
 ) -> tuple[float, float]:
     """It uses accelerated incremental search to find the upper limit where a local
     maximum is contained.
@@ -17,7 +18,7 @@ def incremental_search(
     f: (float) -> float
         The objective function.
     max_step: float
-        The maximum possible step for the gradient descent.
+        The maximum possible step in the gradient direction.
     starting_point: float, optional
         The starting point of the incremental search.
     step: float, optional
@@ -31,58 +32,36 @@ def incremental_search(
         The upper bound of the estimated interval.
     """
 
+    # Initialize
     lower = 0
     upper = starting_point
     prev_val = f(starting_point)
     i = 1
+    equal_counter = 0
     shift = lambda i: (i - 1) * step
+
+    # Start search
     while shift(i) < max_step:
+        # Update point
         current_point = starting_point + shift(i)
         current_val = f(current_point)
+
+        # Check for local maximum
         if current_val < prev_val:
             break
+
+        # Counter if the function is constant (avoid infinite loops)
+        elif current_val == prev_val:
+            equal_counter += 1
+        if equal_counter > max_iter_equal:
+            break
+
         prev_val = current_val
         i += 1
+
     lower = starting_point + shift(i - 1)
     upper = starting_point + shift(i + 1)
-
     return lower, upper
-
-
-def backtracking(
-    f: Callable[[np.ndarray], float],
-    grad_f: Callable[[np.ndarray], np.ndarray],
-    beta: float,
-    x: np.ndarray,
-) -> float:
-    """Optimization of the step size via backtracking.
-
-    Parameters
-    ----------
-    f: (numpy.ndarray) -> float
-        The objective function.
-    grad_f: (numpy.ndarray) -> np.ndarray
-        The gradient of the objective function.
-    beta: float
-        The step scaling parameter.
-    x: numpy.ndarray
-        The point to evaluate the objective function at.
-
-    Returns
-    -------
-    float
-        The estimated step size.
-    """
-
-    step = 1
-    i = 1
-    while True:
-        grad = grad_f(x)
-        if f(x - step * grad) <= f(x) - step * 1 / 2 * (grad.dot(grad)):
-            break
-        step = beta * step
-        i += 1
-    return step
 
 
 def golden_section_search(
@@ -112,8 +91,11 @@ def golden_section_search(
     if not lower < upper:
         raise ValueError("Invalid interval.")
 
+    # Estimate number of iterations
     ratio = 2 / (1 + np.sqrt(5))
     n = np.ceil(np.log(tol) / np.log(ratio))
+
+    # Initialize values
     x1 = lower + (1 - ratio) * (upper - lower)
     x2 = upper - (1 - ratio) * (upper - lower)
     i = 1
