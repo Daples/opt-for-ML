@@ -2,7 +2,6 @@ from itertools import product
 from typing import Any
 
 import numpy as np
-from numpy.random import Generator, default_rng
 from sklearn.svm import SVC
 from time import time
 from tqdm import tqdm
