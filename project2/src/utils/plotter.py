@@ -56,9 +56,9 @@ class Plotter:
         y: np.ndarray,
         matrix: np.ndarray,
         iteration_path: np.ndarray,
-        iteration: int,
-        xlabel: str = "$C$",
-        ylabel: str = "$\gamma$",
+        figure_name: str,
+        xlabel: str = "$\log_{10}C$",
+        ylabel: str = "$\log_{10}\gamma$",
         xlim: list[float] = [0, 9],
         ylim: list[float] = [-10, 0],
     ) -> None:
@@ -74,6 +74,8 @@ class Plotter:
             The surface values.
         iteration_path: numpy.ndarray
             The optimization path of points.
+        figure_name: str
+            The name label for the figure.
         xlabel: str, optional
             The label for the x-axis. Default: "$C$".
         ylabel: str, optional
@@ -87,18 +89,22 @@ class Plotter:
         cls.clear()
         cls.__setup_config__()
 
-        plt.contourf(x, y, matrix, cls._levels)
+        plt.contourf(x, y, matrix, cls._levels, zorder=-1)
         plt.colorbar()
 
-        plt.plot(iteration_path[:, 0], iteration_path[:, 1], "r-", linewidth=1)
-        plt.scatter(iteration_path[:, 0], iteration_path[:, 1], c="k", s=4)
-        plt.scatter(iteration_path[-1, 0], iteration_path[-1, 1], c="w", s=4)
+        plt.plot(
+            iteration_path[:, 0], iteration_path[:, 1], "r-", linewidth=1, zorder=1
+        )
+        plt.scatter(iteration_path[:, 0], iteration_path[:, 1], c="k", s=3, zorder=3)
+        plt.scatter(
+            iteration_path[-1, 0], iteration_path[-1, 1], c="magenta", s=4, zorder=3
+        )
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.xlim(xlim)
         plt.ylim(ylim)
 
-        path = f"bo_iter_{iteration}.pdf"
+        path = f"bo_iter_{figure_name}.pdf"
         plt.savefig(cls._add_folder(path), bbox_inches="tight")
         cls.clear()
 
@@ -109,8 +115,8 @@ class Plotter:
         y: np.ndarray,
         matrix: np.ndarray,
         path: str,
-        xlabel: str = "$C$",
-        ylabel: str = "$\gamma$",
+        xlabel: str = "$\log_{10}C$",
+        ylabel: str = "$\log_{10}\gamma$",
         xlim: list[float] = [0, 9],
         ylim: list[float] = [-10, 0],
     ) -> None:
@@ -143,7 +149,7 @@ class Plotter:
         fig, axs = plt.subplots(1, 1)
         heatmap = axs.imshow(
             matrix.T,
-            cmap="winter",
+            cmap="viridis",
             interpolation="nearest",
             origin="lower",
             extent=extent,
@@ -161,8 +167,8 @@ class Plotter:
         x: np.ndarray,
         y: np.ndarray,
         path: str,
-        xlabel: str = "$C$",
-        ylabel: str = "$\gamma$",
+        xlabel: str = "$\log_{10}C$",
+        ylabel: str = "$\log_{10}\gamma$",
         xlim: list[float] = [0, 9],
         ylim: list[float] = [-10, 0],
     ) -> None:
@@ -213,7 +219,7 @@ class Plotter:
         performances: numpy.ndarray
             The performances per iteration.
         performance_grid_search: float
-            Th best performance found from grid search.
+            The best performance found from grid search.
         path: str
             The path to save the figure.
         xlabel: str, optional
@@ -238,4 +244,36 @@ class Plotter:
         plt.ylim([0, 1])
         plt.legend()
         plt.grid()
-        plt.savefig(cls._add_folder(path))
+        plt.savefig(cls._add_folder(path), bbox_inches="tight")
+
+    @classmethod
+    def get_times_plot(
+        cls,
+        times: list[float],
+        path: str,
+        xlabel: str = "Iteration",
+        ylabel: str = "Execution time (s)",
+    ) -> None:
+        """It plots the best-so-far misclassification error between iterations.
+
+        Parameters
+        ----------
+        times: list[float]
+            The execution time per iteration.
+        path: str
+            The path to save the figure.
+        xlabel: str, optional
+            The label for the x-axis. Default: "Iteration".
+        ylabel: str, optional
+            The label for the y-axis. Default: "$Misclassfication error"
+        """
+
+        cls.clear()
+        cls.__setup_config__()
+
+        plt.plot(times, "k-o", markersize=2)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.ylim([0, 1])
+        plt.grid()
+        plt.savefig(cls._add_folder(path), bbox_inches="tight")
