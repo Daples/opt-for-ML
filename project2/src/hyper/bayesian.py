@@ -2,8 +2,11 @@ from itertools import product
 from typing import Any, cast
 
 import numpy as np
+import scipy.stats as st
 from numpy.random import Generator, default_rng
 from sklearn.svm import SVC
+from time import time
+from tqdm import tqdm
 
 from utils import gaussian_kernel, get_random_hyperparameters
 from utils.classifier import ClassificationModel
@@ -36,6 +39,10 @@ class BayesianOptimizer:
         The best-so-far combination of hyperparameters.
     best_performance: float
         The best-so-far performance.
+    iter_times: list[float]
+        The list of execution time per iteration.
+    total_time: float
+        The total execution time of the hyperparameter search.
     _recalculate_parameters: bool
         If the auxiliary parameters need to be calculated.
     _matrix_sigma: numpy.ndarray
@@ -76,6 +83,8 @@ class BayesianOptimizer:
         self.previous_performances: np.ndarray = np.zeros((0, 1))
         self.best_hyperparameters: np.ndarray = np.zeros(n)
         self.best_performance: float = 0
+        self.iter_times: list[float] = []
+        self.total_time: float = -1
 
         self._recalculate_parameters: bool = True
         self._matrix_sigma: np.ndarray = np.zeros((n, n))
@@ -88,6 +97,7 @@ class BayesianOptimizer:
         n_iter: int = 100,
         n_init: int = 5,
         n_contours: int = 5,
+        label: str | None = None,
     ) -> None:
         """It performs Bayesian optimization to find the best hyperparameters.
 
@@ -103,9 +113,13 @@ class BayesianOptimizer:
             The initial number of sample. Default: 5.
         n_contour: int, optional
             The number of contours and paths to save. Default: 5.
+        label: str | None, optional
+            An additional label for the figure naming. Default: None.
         """
 
         # Get random hyperparameters
+        n_iter -= n_init
+        self.total_time = time()
         for i in range(n_init):
             hyperparams = get_random_hyperparameters(self.intervals, self.generator)
 
@@ -122,12 +136,17 @@ class BayesianOptimizer:
             ).tolist()
 
         # Iterate Bayesian optimization
-        i = 0
-        while i < n_iter:
-            print("B.O. iteration", i)
+        for i in tqdm(range(n_iter)):
+            init_time = time()
+
             # Maximize acquisition
             draw_iteration = i in chosen_iterations
-            new_hyperparameters = self._maximize_acquisition(draw_iteration, i)
+            figure_name = str(i)
+            if label is not None:
+                figure_name = label + "_" + figure_name
+            new_hyperparameters = self._maximize_acquisition(
+                draw_iteration, figure_name
+            )
 
             # Evaluate performance
             new_performance = self.model.eval(
@@ -136,21 +155,24 @@ class BayesianOptimizer:
 
             # Update observations
             self._update_previous_info(new_hyperparameters, new_performance)
-            i += 1
+            self.iter_times.append(time() - init_time)
 
         idx = self.previous_performances.argmax()
         self.best_performance = self.previous_performances[idx, 0]
         self.best_hyperparameters = self.previous_hyperparameters[idx, :]
+        self.total_time = time() - self.total_time
 
-    def _maximize_acquisition(self, draw_iteration: bool, iteration: int) -> np.ndarray:
+    def _maximize_acquisition(
+        self, draw_iteration: bool, figure_name: str
+    ) -> np.ndarray:
         """Returns the hyperparameters that (locally) maximize the acquisition function.
 
         Parameters
         ----------
         draw_iteration: bool
             If the maximization procedure should be stored.
-        iteration: int
-            The iteration of the BO process.
+        figure_name: str
+            The name to save the contour if needed.
 
         Returns
         -------
@@ -178,7 +200,7 @@ class BayesianOptimizer:
             update_h = lambda l: h + l * grad / norm
             auxiliary_of = lambda l: self.acquisition_function(update_h(l))
 
-            # Optimize for step size
+            # Find maximum possible step size
             dim = self.intervals.shape[0]
             minimum_distance = np.inf
             for i in range(dim):
@@ -229,27 +251,29 @@ class BayesianOptimizer:
 
             # Construct plot
             Plotter.store_iteration(
-                matrix[0, :], matrix[1, :], acquisition, path, iteration
+                matrix[0, :], matrix[1, :], acquisition.T, path, figure_name
             )
 
         return h
 
     def acquisition_function(self, hyperparameters: np.ndarray) -> float:
-        """It returns the lower confidence bound acquisition function.
-
+        """It evaluates the "probability of improving" acquisition function.
         Parameters
         ----------
-        hyperparameters
-            The hyperparameters to evalaute the acquisition function.
+        hyperparameters: numpy.ndarray
+            The hyperparameters to evaluate the function in.
 
         Returns
         -------
         float
-            The acquisition function value.
+            The acquisition function value at the input hyperparameters.
         """
 
-        mean, sigma = self.get_gaussian_params(hyperparameters)
-        return mean + 2 * sigma
+        mean, std = self.get_gaussian_params(hyperparameters)
+        return cast(
+            float,
+            st.norm.cdf((mean - self.best_performance) / std),
+        )
 
     def get_gaussian_params(self, hyperparameters: np.ndarray) -> tuple[float, float]:
         """It returns the parameters of the conditional Gaussian distribution for
@@ -326,4 +350,6 @@ class BayesianOptimizer:
         d["best_hyperparameters"] = self.best_hyperparameters.tolist()
         d["all_performance"] = self.previous_performances.tolist()
         d["all_hyperparameters"] = self.previous_hyperparameters.tolist()
+        d["iter_times"] = self.iter_times
+        d["total_time"] = self.total_time
         return d
