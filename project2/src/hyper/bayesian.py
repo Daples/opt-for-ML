@@ -1,11 +1,11 @@
 from itertools import product
+from time import time
 from typing import Any, cast
 
 import numpy as np
 import scipy.stats as st
 from numpy.random import Generator, default_rng
 from sklearn.svm import SVC
-from time import time
 from tqdm import tqdm
 
 from utils import gaussian_kernel, get_random_hyperparameters

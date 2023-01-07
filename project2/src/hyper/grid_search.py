@@ -1,9 +1,9 @@
 from itertools import product
+from time import time
 from typing import Any
 
 import numpy as np
 from sklearn.svm import SVC
-from time import time
 from tqdm import tqdm
 
 from utils.classifier import ClassificationModel
