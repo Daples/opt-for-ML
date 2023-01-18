@@ -1,4 +1,4 @@
-# PROJECT 2: Linear Algebra and Optimization for Machine Learning
+# PROJECT 2: Hyperparameter Optimization
 
 Project by:
     - Juan Sebastian Mesa

@@ -1,4 +1,4 @@
-# PROJECT 1: Linear Algebra and Optimization for Machine Learning.
+# PROJECT 1: Implementation of Clustering Algorithms
 
 Project by:
     - Luisa Rummel
